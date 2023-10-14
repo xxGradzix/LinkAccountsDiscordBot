@@ -1,0 +1,3 @@
+name: LinkAccountsBot
+version: '${project.version}'
+main: me.xxgradzix.linkaccountsbot.LinkAccountsBot
