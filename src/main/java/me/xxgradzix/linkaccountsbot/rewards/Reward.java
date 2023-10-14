@@ -1,6 +1,6 @@
-package me.xxgradzix.ageplaydiscordbot.rewards;
+package me.xxgradzix.linkaccountsbot.rewards;
 
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
 
 public abstract class Reward {
 

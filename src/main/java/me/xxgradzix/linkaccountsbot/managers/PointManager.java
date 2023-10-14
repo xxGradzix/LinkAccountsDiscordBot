@@ -1,17 +1,21 @@
-package me.xxgradzix.ageplaydiscordbot.managers;
+package me.xxgradzix.linkaccountsbot.managers;
 
-import me.xxgradzix.ageplaydiscordbot.AgePlayDiscordBot;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
-import me.xxgradzix.ageplaydiscordbot.database.managers.PlayerEntityManager;
+
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
 
 import java.util.UUID;
 
 public class PointManager {
 
-    private final static PlayerEntityManager PLAYER_ENTITY_MANAGER = AgePlayDiscordBot.getPlayerEntityManager();
+    private final PlayerEntityManager playerEntityManager;
 
-    public static int getUserPoints(UUID userMinecraftId) {
-        PlayerEntity playerEntity = PLAYER_ENTITY_MANAGER.getPlayerEntityByMinecraftId(userMinecraftId);
+    public PointManager(PlayerEntityManager playerEntityManager) {
+        this.playerEntityManager = playerEntityManager;
+    }
+
+    public int getUserPoints(UUID userMinecraftId) {
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByMinecraftId(userMinecraftId);
 
         if(playerEntity == null) {
             return -1;
@@ -19,60 +23,60 @@ public class PointManager {
 
         return playerEntity.getPoints();
     }
-    public static void withdrawPoints(UUID userMinecraftId, int amount) {
-        PlayerEntity playerEntity = PLAYER_ENTITY_MANAGER.getPlayerEntityByMinecraftId(userMinecraftId);
+    public void withdrawPoints(UUID userMinecraftId, int amount) {
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByMinecraftId(userMinecraftId);
         if(playerEntity == null) {
             return;
         }
 
         playerEntity.withdrawPoints(amount);
 
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
-    public static void withdrawPoints(Long userDiscordId, int amount) {
-        PlayerEntity playerEntity = PLAYER_ENTITY_MANAGER.getPlayerEntityByDiscordId(userDiscordId);
+    public void withdrawPoints(Long userDiscordId, int amount) {
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
         if(playerEntity == null) {
             return;
         }
 
         playerEntity.withdrawPoints(amount);
 
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
-    public static void withdrawPoints(PlayerEntity playerEntity, int amount) {
+    public void withdrawPoints(PlayerEntity playerEntity, int amount) {
         if(playerEntity == null) {
             return;
         }
         playerEntity.withdrawPoints(amount);
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
 
 
-    public static void addPoints(UUID userMinecraftId, int amount) {
-        PlayerEntity playerEntity = PLAYER_ENTITY_MANAGER.getPlayerEntityByMinecraftId(userMinecraftId);
+    public void addPoints(UUID userMinecraftId, int amount) {
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByMinecraftId(userMinecraftId);
         if(playerEntity == null) {
             return;
         }
 
         playerEntity.addPoints(amount);
 
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
-    public static void addPoints(Long userDiscordId, int amount) {
-        PlayerEntity playerEntity = PLAYER_ENTITY_MANAGER.getPlayerEntityByDiscordId(userDiscordId);
+    public void addPoints(Long userDiscordId, int amount) {
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
         if(playerEntity == null) {
             return;
         }
         playerEntity.addPoints(amount);
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
 
-    public static void addPoints(PlayerEntity playerEntity, int amount) {
+    public void addPoints(PlayerEntity playerEntity, int amount) {
         if(playerEntity == null) {
             return;
         }
         playerEntity.addPoints(amount);
-        PLAYER_ENTITY_MANAGER.updatePlayerEntity(playerEntity);
+        playerEntityManager.updatePlayerEntity(playerEntity);
     }
 
 }

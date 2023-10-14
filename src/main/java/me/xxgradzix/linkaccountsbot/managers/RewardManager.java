@@ -1,59 +1,70 @@
-package me.xxgradzix.ageplaydiscordbot.managers;
+package me.xxgradzix.linkaccountsbot.managers;
 
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
-import me.xxgradzix.ageplaydiscordbot.rewards.Reward;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
+import me.xxgradzix.linkaccountsbot.rewards.Reward;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 public class RewardManager {
 
-    public static final Reward VIP_REWARD = new Reward("vip", 100) {
+    private final PointManager pointManager;
+    public RewardManager(PlayerEntityManager playerEntityManager, PointManager pointManager) {
+
+        this.pointManager = pointManager;
+    }
+
+
+
+    public final Reward vipReward = new Reward("vip", 100) {
         @Override
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            Player player = Bukkit.getPlayer(playerEntity.getMinecraftId());
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
 
             if(player == null) {
                 return;
             }
 
-            PointManager.withdrawPoints(playerEntity, getCost());
+            pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage("nagroda vip");
+            player.sendMessage(TextComponent.fromLegacyText("nagroda vip"));
 
 
         }
     };
-    public static final Reward SVIP_REWARD = new Reward("svip", 200) {
+    public final Reward svipReward = new Reward("svip", 200) {
         @Override
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            Player player = Bukkit.getPlayer(playerEntity.getMinecraftId());
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
 
             if(player == null) {
                 return;
             }
-            PointManager.withdrawPoints(playerEntity, getCost());
+            pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage("nagroda svip");
+            player.sendMessage(TextComponent.fromLegacyText("nagroda svip"));
 
         }
     };
-    public static final Reward AGE_REWARD = new Reward("age", 500) {
+    public final Reward ageReward = new Reward("age", 500) {
         @Override
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            Player player = Bukkit.getPlayer(playerEntity.getMinecraftId());
+            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
 
             if(player == null) {
                 return;
             }
-            PointManager.withdrawPoints(playerEntity, getCost());
+            pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage("nagroda age");
+            player.sendMessage(TextComponent.fromLegacyText("nagroda age"));
 
         }
     };

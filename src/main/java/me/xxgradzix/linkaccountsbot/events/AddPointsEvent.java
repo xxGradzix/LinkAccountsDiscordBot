@@ -1,9 +1,9 @@
-package me.xxgradzix.ageplaydiscordbot.events;
+package me.xxgradzix.linkaccountsbot.events;
 
-import me.xxgradzix.ageplaydiscordbot.AgePlayDiscordBot;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerPointEntity;
-import me.xxgradzix.ageplaydiscordbot.database.managers.PlayerPointEntityManager;
-import me.xxgradzix.ageplaydiscordbot.managers.PointManager;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerPointEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerPointEntityManager;
+import me.xxgradzix.linkaccountsbot.managers.PointManager;
 import net.dv8tion.jda.api.entities.MessageReaction;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateBoostTimeEvent;
@@ -11,33 +11,17 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class AddPointsEvent extends ListenerAdapter {
 
-    private static final Map<Long, Set<Long>> reactedAnnouncementMessages = AgePlayDiscordBot.getPlayerPointEntityManager().getReactedAnnouncementMessagesMap();
-    private static final Map<Long, Set<Long>> reactedContestMessages = AgePlayDiscordBot.getPlayerPointEntityManager().getReactedContestMessagesMap();
-    private static final Map<Long, Set<Long>> reactedPollMessages = AgePlayDiscordBot.getPlayerPointEntityManager().getReactedPollMessagesMap();
+    private final PlayerPointEntityManager playerPointEntityManager;
 
-    public static void saveAllOnDisable() {
-        PlayerPointEntityManager playerPointEntityManager = AgePlayDiscordBot.getPlayerPointEntityManager();
+    private final PointManager pointManager;
 
-        Set<Long> userIds = new HashSet<>();
-
-        userIds.addAll(reactedAnnouncementMessages.keySet());
-        userIds.addAll(reactedContestMessages.keySet());
-        userIds.addAll(reactedPollMessages.keySet());
-
-        for(long userId : userIds) {
-            PlayerPointEntity playerPointEntity = new PlayerPointEntity(userId,
-                    reactedAnnouncementMessages.getOrDefault(userId, new HashSet<>()),
-                    reactedContestMessages.getOrDefault(userId, new HashSet<>()),
-                    reactedPollMessages.getOrDefault(userId, new HashSet<>()));
-            playerPointEntityManager.createOrUpdatePlayerPointEntity(playerPointEntity);
-        }
-
+    public AddPointsEvent(PlayerEntityManager playerEntityManager, PlayerPointEntityManager playerPointEntityManager, PointManager pointManager) {
+        this.playerPointEntityManager = playerPointEntityManager;
+        this.pointManager = pointManager;
     }
 
     private static final String ANNOUNCEMENT_CHANNEL_ID = "13";
@@ -63,49 +47,60 @@ public class AddPointsEvent extends ListenerAdapter {
 
         String channelId = event.getChannel().getId();
 
+        PlayerPointEntity playerPointEntity = playerPointEntityManager.getPlayerPointEntities(userId);
+
+        if(playerPointEntity == null) throw  new NullPointerException("Zwraca nulla, pewnie try catch rzuca wyjatek");
+
         Set<Long> userReactedMessages;
 
         switch(channelId) {
             case ANNOUNCEMENT_CHANNEL_ID: {
-                userReactedMessages = reactedAnnouncementMessages.getOrDefault(userId, new HashSet<>());
+//                userReactedMessages = reactedAnnouncementMessages.getOrDefault(userId, new HashSet<>());
+                userReactedMessages = playerPointEntity.getReactedAnnouncementMessagesIds();
 
                 if(!userReactedMessages.contains(messageId)) {
 
-                    PointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
-
+                    pointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
                     userReactedMessages.add(messageId);
-                    reactedAnnouncementMessages.put(userId, userReactedMessages);
+//                    reactedAnnouncementMessages.put(userId, userReactedMessages);
+                    playerPointEntity.setReactedAnnouncementMessagesIds(userReactedMessages);
                 }
 
                 break;
             }
             case CONTEST_CHANNEL_ID: {
-                userReactedMessages = reactedContestMessages.getOrDefault(userId, new HashSet<>());
+//                userReactedMessages = reactedContestMessages.getOrDefault(userId, new HashSet<>());
+                userReactedMessages = playerPointEntity.getReactedContestMessageIds();
 
                 if(!userReactedMessages.contains(messageId)) {
 
-                    PointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
+                    pointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
 
                     userReactedMessages.add(messageId);
-                    reactedContestMessages.put(userId, userReactedMessages);
+//                    reactedContestMessages.put(userId, userReactedMessages);
+                    playerPointEntity.setReactedContestMessageIds(userReactedMessages);
+
                 }
 
                 break;
             }
             case POLL_CHANNEL_ID: {
-                userReactedMessages = reactedPollMessages.getOrDefault(userId, new HashSet<>());
+//                userReactedMessages = reactedPollMessages.getOrDefault(userId, new HashSet<>());
+                userReactedMessages = playerPointEntity.getReactedPollMessagesIds();
 
                 if(!userReactedMessages.contains(messageId)) {
 
-                    PointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
+                    pointManager.addPoints(userId, MESSAGE_REACTION_POINTS_AMOUNT);
 
                     userReactedMessages.add(messageId);
-                    reactedPollMessages.put(userId, userReactedMessages);
+//                    reactedPollMessages.put(userId, userReactedMessages);
+                    playerPointEntity.setReactedPollMessagesIds(userReactedMessages);
                 }
                 break;
             }
             default: {
             }
+            playerPointEntityManager.createOrUpdatePlayerPointEntity(playerPointEntity);
         }
     }
 
@@ -113,13 +108,11 @@ public class AddPointsEvent extends ListenerAdapter {
     public void onGuildMemberUpdateBoostTime(@NotNull GuildMemberUpdateBoostTimeEvent event) {
         User user = event.getUser();
 
-        if(user == null) return;
-
         if (user.isBot()) return;
 
         long userId = user.getIdLong();
 
-        PointManager.addPoints(userId, 100);
+        pointManager.addPoints(userId, 100);
 
     }
 }

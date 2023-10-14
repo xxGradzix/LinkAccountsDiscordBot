@@ -1,9 +1,8 @@
-package me.xxgradzix.ageplaydiscordbot.commands;
+package me.xxgradzix.linkaccountsbot.commands;
 
-import me.xxgradzix.ageplaydiscordbot.AgePlayDiscordBot;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
-import me.xxgradzix.ageplaydiscordbot.database.managers.PlayerEntityManager;
-import me.xxgradzix.ageplaydiscordbot.managers.PointManager;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
+import me.xxgradzix.linkaccountsbot.managers.PointManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -19,7 +18,15 @@ import java.awt.*;
 
 public class AddPointsCommand extends ListenerAdapter {
 
-    private final PlayerEntityManager entityManager = AgePlayDiscordBot.getPlayerEntityManager();
+    private final PlayerEntityManager playerEntityManager;
+    private final PointManager pointManager;
+
+    public AddPointsCommand(PlayerEntityManager playerEntityManager, PointManager pointManager) {
+        this.playerEntityManager = playerEntityManager;
+        this.pointManager = pointManager;
+    }
+
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
@@ -44,6 +51,8 @@ public class AddPointsCommand extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
+
+        if(event.getButton().getId() == null) return;
 
         if(event.getButton().getId().equalsIgnoreCase("button_add_points")) {
 
@@ -75,7 +84,7 @@ public class AddPointsCommand extends ListenerAdapter {
         String nick = event.getValue("form-add-points-nick").getAsString();
         int points = Integer.parseInt(event.getValue("form-add-points-points").getAsString());
 
-        PlayerEntity playerEntity = entityManager.getPlayerEntityByDiscordNick(nick);
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordNick(nick);
 
         if(playerEntity == null) {
             // TODO Embed nie ma powiazanego konta
@@ -83,7 +92,7 @@ public class AddPointsCommand extends ListenerAdapter {
             return;
         }
 
-        PointManager.addPoints(playerEntity, points);
+        pointManager.addPoints(playerEntity, points);
 
         // TODO Embed adding points
         event.reply("Dodano " + points + " punktow graczowi o nicku dc: " + nick).setEphemeral(true).queue();

@@ -1,31 +1,43 @@
-package me.xxgradzix.ageplaydiscordbot.events;
+package me.xxgradzix.linkaccountsbot.events;
 
-import me.xxgradzix.ageplaydiscordbot.AgePlayDiscordBot;
-import me.xxgradzix.ageplaydiscordbot.managers.PointManager;
+
+import me.xxgradzix.linkaccountsbot.LinkAccountsBot;
+import me.xxgradzix.linkaccountsbot.managers.PointManager;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitScheduler;
+
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.scheduler.TaskScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class AddPointsSynchronously extends ListenerAdapter {
 
-    private AgePlayDiscordBot plugin;
+    private final PointManager pointManager;
 
-    private Set<Long> chatActivityPlayersWithAddedPoints = new HashSet<>();
-    private Set<Long> voiceChannelActivityPlayersWithAddedPoints = new HashSet<>();
+    private final Set<Long> chatActivityPlayersWithAddedPoints = new HashSet<>();
+    private final Set<Long> voiceChannelActivityPlayersWithAddedPoints = new HashSet<>();
 
+    public AddPointsSynchronously(LinkAccountsBot plugin, PointManager pointManager) {
+        this.pointManager = pointManager;
+
+        TaskScheduler scheduler = ProxyServer.getInstance().getScheduler();
+
+        scheduler.schedule(plugin, () -> {
+            chatActivityPlayersWithAddedPoints.clear();
+            voiceChannelActivityPlayersWithAddedPoints.clear();
+        },0 , 1, TimeUnit.DAYS);
+    }
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         User user = event.getAuthor();
 
-        if(user == null) return;
         if(user.isBot()) return;
 
         System.out.println(user.getIdLong());
@@ -35,7 +47,7 @@ public class AddPointsSynchronously extends ListenerAdapter {
 
         if(chatActivityPlayersWithAddedPoints.contains(userId)) return;
 
-        PointManager.addPoints(userId, 5);
+        pointManager.addPoints(userId, 5);
 
         chatActivityPlayersWithAddedPoints.add(userId);
 
@@ -50,24 +62,10 @@ public class AddPointsSynchronously extends ListenerAdapter {
 
         if(voiceChannelActivityPlayersWithAddedPoints.contains(userId)) return;
 
-        PointManager.addPoints(userId, 5);
+        pointManager.addPoints(userId, 5);
 
         voiceChannelActivityPlayersWithAddedPoints.add(userId);
     }
 
-    public AddPointsSynchronously(AgePlayDiscordBot plugin) {
-        this.plugin = plugin;
 
-        BukkitScheduler scheduler = Bukkit.getScheduler();
-        scheduler.runTaskTimer(plugin, () -> {
-
-            chatActivityPlayersWithAddedPoints.clear();
-            voiceChannelActivityPlayersWithAddedPoints.clear();
-
-        }, 0, 20L *
-                60L *
-                60L *
-                24L
-                );
-    }
 }

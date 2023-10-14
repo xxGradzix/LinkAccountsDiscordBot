@@ -1,10 +1,10 @@
-package me.xxgradzix.ageplaydiscordbot.commands;
+package me.xxgradzix.linkaccountsbot.commands;
 
-import me.xxgradzix.ageplaydiscordbot.AgePlayDiscordBot;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
-import me.xxgradzix.ageplaydiscordbot.database.managers.PlayerEntityManager;
-import me.xxgradzix.ageplaydiscordbot.managers.RewardManager;
-import me.xxgradzix.ageplaydiscordbot.rewards.Reward;
+
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
+import me.xxgradzix.linkaccountsbot.managers.RewardManager;
+import me.xxgradzix.linkaccountsbot.rewards.Reward;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -15,19 +15,27 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 public class ExchangePointsCommands extends ListenerAdapter {
 
-    private final PlayerEntityManager entityManager = AgePlayDiscordBot.getPlayerEntityManager();
+    private final PlayerEntityManager playerEntityManager;
+
+    private final RewardManager rewardManager;
+
+    public ExchangePointsCommands(PlayerEntityManager playerEntityManager, RewardManager rewardManager) {
+        this.playerEntityManager = playerEntityManager;
+        this.rewardManager = rewardManager;
+    }
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
 
-        if(!event.getName().equalsIgnoreCase("formsetup")) return;
+        if(!event.getName().equalsIgnoreCase("exchangesetup")) return;
 
         MessageEmbed embed = new EmbedBuilder()
 
@@ -42,14 +50,14 @@ public class ExchangePointsCommands extends ListenerAdapter {
                         "• Aktywność Czatu = 5 Pkt\n" +
                         "• Aktywność Głosowa =5 Pkt\n" +
                         "• Posiadanie Rangi Twórca/Wspierający = 150 Pkt ( Co Miesiąc ) ")
-                .setFooter("Aktywość Kanałow Czatu = Codziennie\n" +
+                .setFooter("Aktywność Kanałow Czatu = Codziennie\n" +
                         "Aktywność Kanałów Głosowych = Codziennie\n" +
                         "Posiadanie Rang = Co Miesiąc")
 
                 .setColor(Color.red)
                 .build();
 
-        Button exchangeBtn = Button.primary("button_wymien", "Wymień");
+        Button exchangeBtn = Button.primary("button_exchange", "Wymień");
         Button balanceBtn = Button.primary("button_balance", "Stan konta");
 
         event.getChannel().sendMessageEmbeds(embed)
@@ -59,17 +67,16 @@ public class ExchangePointsCommands extends ListenerAdapter {
 
     }
 
-
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
 
         Long userDiscordId = event.getUser().getIdLong();
-        PlayerEntity playerEntity = entityManager.getPlayerEntityByDiscordId(userDiscordId);
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
 
-        if(event.getButton().getId().equalsIgnoreCase("button_wymien")) {
+        if(event.getButton().getId().equalsIgnoreCase("button_exchange")) {
             if(playerEntity == null) {
                 //todo musisz miec polaczone konto embed
-                event.reply("Musisz miec polaczone koto by odebrac nagrode").setEphemeral(true).queue();
+                event.reply("Musisz miec polaczone konto by odebrać nagrodę").setEphemeral(true).queue();
                 return;
             }
 
@@ -79,7 +86,7 @@ public class ExchangePointsCommands extends ListenerAdapter {
                     .setPlaceholder("Ranga jaką chcesz odebrać (vip, svip, age")
                     .build();
 
-            Modal modal = Modal.create("form-modal", "Odbierz nagrode")
+            Modal modal = Modal.create("form-modal", "Odbierz nagrodę")
                     .addActionRow(rank)
                     .build();
 
@@ -88,11 +95,9 @@ public class ExchangePointsCommands extends ListenerAdapter {
         }
         if(event.getButton().getId().equalsIgnoreCase("button_balance")) {
             if(playerEntity == null) {
-                event.reply("Musisz miec polaczone koto by sprawdzić stan konta").setEphemeral(true).queue();
+                event.reply("Musisz miec polaczone konto by sprawdzić stan konta").setEphemeral(true).queue();
                 return;
             }
-
-
             //TOdo stan konta embed
             event.reply("Twój stan konta to " + playerEntity.getPoints()).setEphemeral(true).queue();
         }
@@ -104,26 +109,26 @@ public class ExchangePointsCommands extends ListenerAdapter {
 
         Long userDiscordId = event.getUser().getIdLong();
 
-        PlayerEntity playerEntity = entityManager.getPlayerEntityByDiscordId(userDiscordId);
+        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
 
         if(playerEntity == null) {
             event.reply("Musisz miec polaczone koto by odebrac nagrode").setEphemeral(true).queue();
             return;
         }
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
 
-        Player player = Bukkit.getPlayer(playerEntity.getMinecraftId());
 
 
         // TODO blad gracz = null
         // TODO gracz offline
-        if(player == null || !player.isOnline()) {
+        if(player == null || !player.isConnected()) {
             event.reply("Tego gracza nie ma na serwerze").setEphemeral(true).queue();
             return;
         }
 
         if(event.getValue("form-rank") == null) {
             // TODO musisz podac range
-            event.reply("Musisz podac range jaka chcesz odebrac").setEphemeral(true).queue();
+            event.reply("Musisz podać range jaka chcesz odebrać").setEphemeral(true).queue();
             return;
         }
 
@@ -137,29 +142,29 @@ public class ExchangePointsCommands extends ListenerAdapter {
             return;
         }
 
-        reward.collect(playerEntity);
-
         if(!reward.canAfford(playerEntity)) {
-            event.reply("Nie masz wystarczającej ilosci punktów by odebrać tą nagrode").setEphemeral(true).queue();
+            event.reply("Nie masz wystarczającej ilości punktów by odebrać tą nagrodę").setEphemeral(true).queue();
             return;
         }
 
+        reward.collect(playerEntity);
+
         // TODO odebrales nagrode
-        event.reply("Odebrałeś nagrode").setEphemeral(true).queue();
+        event.reply("Odebrałeś nagrodę " + reward.getName()).setEphemeral(true).queue();
     }
 
     public Reward getReward(String rank) {
         rank = rank.toLowerCase();
-        Reward reward = null;
+        Reward reward;
         switch (rank) {
             case "vip":
-                reward = RewardManager.VIP_REWARD;
+                reward = rewardManager.vipReward;
                 break;
             case "svip":
-                reward = RewardManager.SVIP_REWARD;
+                reward = rewardManager.svipReward;
                 break;
             case "age":
-                reward = RewardManager.AGE_REWARD;
+                reward = rewardManager.ageReward;
                 break;
             default:
                 return null;

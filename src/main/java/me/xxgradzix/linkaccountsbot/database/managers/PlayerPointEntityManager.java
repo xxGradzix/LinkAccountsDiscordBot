@@ -1,15 +1,12 @@
-package me.xxgradzix.ageplaydiscordbot.database.managers;
+package me.xxgradzix.linkaccountsbot.database.managers;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerPointEntity;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerPointEntity;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class PlayerPointEntityManager {
 
@@ -75,11 +72,68 @@ public class PlayerPointEntityManager {
 
     }
 
+    public Set<Long> getReactedAnnouncementMessagesSet(long userId) {
+        try {
+            PlayerPointEntity entity = entityDao.queryForId(userId);
+
+            if(entity.getReactedAnnouncementMessagesIds() == null || entity.getReactedAnnouncementMessagesIds().isEmpty()) return new HashSet<>();
+
+            return entity.getReactedAnnouncementMessagesIds();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HashSet<>();
+        }
+
+    }
+    public Set<Long> getReactedContestMessagesSet(long userId) {
+        try {
+            PlayerPointEntity entity = entityDao.queryForId(userId);
+
+            if(entity.getReactedContestMessageIds() == null || entity.getReactedContestMessageIds().isEmpty()) return new HashSet<>();
+
+            return entity.getReactedContestMessageIds();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HashSet<>();
+        }
+
+    }
+    public Set<Long> getReactedPollMessagesSet(long userId) {
+        try {
+            PlayerPointEntity entity = entityDao.queryForId(userId);
+
+            if(entity.getReactedPollMessagesIds() == null || entity.getReactedPollMessagesIds().isEmpty()) return new HashSet<>();
+
+            return entity.getReactedPollMessagesIds();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new HashSet<>();
+        }
+
+    }
+
 
 
     public List<PlayerPointEntity> getPlayerPointEntities() {
         try {
             return entityDao.queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public PlayerPointEntity getPlayerPointEntities(long discordId) {
+        try {
+            PlayerPointEntity entity = entityDao.queryForId(discordId);
+            if(entity == null) {
+                entity = new PlayerPointEntity(discordId, new HashSet<>(), new HashSet<>(), new HashSet<>());
+                createOrUpdatePlayerPointEntity(entity);
+            }
+            return entity;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return null;

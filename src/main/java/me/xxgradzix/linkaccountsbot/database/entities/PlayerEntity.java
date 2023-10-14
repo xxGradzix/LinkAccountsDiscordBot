@@ -1,4 +1,4 @@
-package me.xxgradzix.ageplaydiscordbot.database.entities;
+package me.xxgradzix.linkaccountsbot.database.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

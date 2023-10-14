@@ -1,9 +1,9 @@
-package me.xxgradzix.ageplaydiscordbot.database.managers;
+package me.xxgradzix.linkaccountsbot.database.managers;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
-import me.xxgradzix.ageplaydiscordbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
 
 import java.sql.SQLException;
 import java.util.List;
