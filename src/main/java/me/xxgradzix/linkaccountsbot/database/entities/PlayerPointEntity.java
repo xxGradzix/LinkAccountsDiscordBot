@@ -2,7 +2,7 @@ package me.xxgradzix.linkaccountsbot.database.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import me.xxgradzix.linkaccountsbot.database.LongSetPersister;
+import me.xxgradzix.linkaccountsbot.database.persisters.LongSetPersister;
 
 import java.util.HashSet;
 import java.util.Set;

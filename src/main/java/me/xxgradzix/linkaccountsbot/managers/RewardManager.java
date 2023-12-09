@@ -2,18 +2,21 @@ package me.xxgradzix.linkaccountsbot.managers;
 
 
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerRewardsEntity;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerRewardsEntityManager;
 import me.xxgradzix.linkaccountsbot.rewards.Reward;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
+
+import java.util.HashMap;
 
 public class RewardManager {
 
     private final PointManager pointManager;
-    public RewardManager(PlayerEntityManager playerEntityManager, PointManager pointManager) {
+    private final PlayerRewardsEntityManager playerRewardsEntityManager;
+    public RewardManager(PlayerEntityManager playerEntityManager, PointManager pointManager, PlayerRewardsEntityManager playerRewardsEntityManager) {
 
         this.pointManager = pointManager;
+        this.playerRewardsEntityManager = playerRewardsEntityManager;
     }
 
 
@@ -23,33 +26,48 @@ public class RewardManager {
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
+            PlayerRewardsEntity entity = playerRewardsEntityManager.getPlayerRewardsEntityByMinecraftId(playerEntity.getMinecraftId());
 
-            if(player == null) {
-                return;
-            }
+            if(entity == null) entity = new PlayerRewardsEntity(playerEntity.getMinecraftId(), new HashMap<>());
+
+            HashMap<String, Integer> rewards = entity.getRewards();
+
+            int rewardAmount = rewards.getOrDefault(getName(), 0);
+
+            rewardAmount++;
+
+            rewards.put(getName(), rewardAmount);
 
             pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage(TextComponent.fromLegacyText("nagroda vip"));
+            entity.setRewards(rewards);
 
-
+            playerRewardsEntityManager.createOrUpdatePlayerRewardsEntity(entity);
         }
     };
     public final Reward svipReward = new Reward("svip", 200) {
+
         @Override
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
+            PlayerRewardsEntity entity = playerRewardsEntityManager.getPlayerRewardsEntityByMinecraftId(playerEntity.getMinecraftId());
 
-            if(player == null) {
-                return;
-            }
+            if(entity == null) entity = new PlayerRewardsEntity(playerEntity.getMinecraftId(), new HashMap<>());
+
+            HashMap<String, Integer> rewards = entity.getRewards();
+
+            int rewardAmount = rewards.getOrDefault(getName(), 0);
+
+            rewardAmount++;
+
+            rewards.put(getName(), rewardAmount);
+
             pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage(TextComponent.fromLegacyText("nagroda svip"));
+            entity.setRewards(rewards);
 
+            playerRewardsEntityManager.createOrUpdatePlayerRewardsEntity(entity);
         }
     };
     public final Reward ageReward = new Reward("age", 500) {
@@ -57,15 +75,23 @@ public class RewardManager {
         public void collect(PlayerEntity playerEntity) {
             if(!canAfford(playerEntity)) return;
 
-            ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
+            PlayerRewardsEntity entity = playerRewardsEntityManager.getPlayerRewardsEntityByMinecraftId(playerEntity.getMinecraftId());
 
-            if(player == null) {
-                return;
-            }
+            if(entity == null) entity = new PlayerRewardsEntity(playerEntity.getMinecraftId(), new HashMap<>());
+
+            HashMap<String, Integer> rewards = entity.getRewards();
+
+            int rewardAmount = rewards.getOrDefault(getName(), 0);
+
+            rewardAmount++;
+
+            rewards.put(getName(), rewardAmount);
+
             pointManager.withdrawPoints(playerEntity, getCost());
 
-            player.sendMessage(TextComponent.fromLegacyText("nagroda age"));
+            entity.setRewards(rewards);
 
+            playerRewardsEntityManager.createOrUpdatePlayerRewardsEntity(entity);
         }
     };
 

@@ -9,8 +9,10 @@ import me.xxgradzix.linkaccountsbot.commands.LinkAccountsDiscordCommand;
 import me.xxgradzix.linkaccountsbot.commands.LinkAccountsMinecraftCommand;
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerPointEntity;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerRewardsEntity;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerPointEntityManager;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerRewardsEntityManager;
 import me.xxgradzix.linkaccountsbot.events.AddPointsEvent;
 import me.xxgradzix.linkaccountsbot.events.AddPointsSynchronously;
 import me.xxgradzix.linkaccountsbot.managers.PointManager;
@@ -29,11 +31,10 @@ public final class LinkAccountsBot extends Plugin {
     public static final String TOKEN = "MTE1MzU5NjYyNDUwNTk0NjE4Mg.G2GHAd.iRivxhC_5BnsUH0r1cUMPJlY6YkPM13zkxUMXs";
     public static final Long GUILD_ID = 1144950609481572453L;
 
-    /* DATABASE */
-    private final String databaseUrl = "jdbc:mysql://localhost:3306/discordbot";
     private final ConnectionSource connectionSource;
     private final PlayerEntityManager playerEntityManager;
     private final PlayerPointEntityManager playerPointEntityManager;
+    private final PlayerRewardsEntityManager playerRewardsEntityManager;
 
     private final PointManager pointManager;
 
@@ -43,16 +44,26 @@ public final class LinkAccountsBot extends Plugin {
 
     public LinkAccountsBot() throws SQLException {
 
+        /* DATABASE LOCAL */
+        String databaseUrl = "jdbc:mysql://localhost:3306/gradzixcore";
         this.connectionSource = new JdbcConnectionSource(databaseUrl, "root", "");
+
+        /* DATABASE AGEPLAY */
+//        String databaseUrl = "jdbc:mysql://185.16.39.57:3306/s286_database";
+//        this.connectionSource = new JdbcConnectionSource(databaseUrl, "u286_f8T7gXXzU1", "a65qmwbgH8Y@cg3dXm^qgSm6");
 
         TableUtils.createTableIfNotExists(connectionSource, PlayerEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, PlayerPointEntity.class);
+        TableUtils.createTableIfNotExists(connectionSource, PlayerRewardsEntity.class);
 
         playerEntityManager = new PlayerEntityManager(connectionSource);
         playerPointEntityManager = new PlayerPointEntityManager(connectionSource);
+        this.playerRewardsEntityManager = new PlayerRewardsEntityManager(connectionSource);
 
         this.pointManager = new PointManager(playerEntityManager);
-        this.rewardManager = new RewardManager(playerEntityManager, pointManager);
+        this.rewardManager = new RewardManager(playerEntityManager, pointManager, playerRewardsEntityManager);
+
+
     }
 
     @Override

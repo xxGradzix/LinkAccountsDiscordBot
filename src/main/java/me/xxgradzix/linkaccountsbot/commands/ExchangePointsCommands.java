@@ -7,17 +7,12 @@ import me.xxgradzix.linkaccountsbot.managers.RewardManager;
 import me.xxgradzix.linkaccountsbot.rewards.Reward;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -42,17 +37,17 @@ public class ExchangePointsCommands extends ListenerAdapter {
                 .setTitle("Rynek - AgePlay.PL")
                 .setDescription("Zdobywaj Punkty i wymień je potem na rangi lub pakiety na serwerze AgePlay.PL\n" +
                         "\n" +
-                        "• Reakcja pod Ogłoszeniami = 15 Pkt\n" +
-                        "• Reakcja pod Ankietami = 15 Pkt\n" +
-                        "• Reakcja pod Konkursami = 15 Pkt\n" +
-                        "• Ulepszenia Serwera = 100 Pkt\n" +
-                        "• Dodaniu Pomysłu na Serwer = 300 Pkt\n" +
-                        "• Aktywność Czatu = 5 Pkt\n" +
-                        "• Aktywność Głosowa =5 Pkt\n" +
-                        "• Posiadanie Rangi Twórca/Wspierający = 150 Pkt ( Co Miesiąc ) ")
-                .setFooter("Aktywność Kanałow Czatu = Codziennie\n" +
-                        "Aktywność Kanałów Głosowych = Codziennie\n" +
-                        "Posiadanie Rang = Co Miesiąc")
+                        "• Reakcja pod Ogłoszeniami = `15 Pkt`\n" +
+                        "• Reakcja pod Ankietami = `15 Pkt`\n" +
+                        "• Reakcja pod Konkursami = `15 Pkt`\n" +
+                        "• Ulepszenia Serwera = `100 Pkt`\n" +
+                        "• Dodaniu Pomysłu na Serwer = `300 Pkt`\n" +
+                        "• Aktywność Czatu = `5 Pkt`\n" +
+                        "• Aktywność Głosowa = `5 Pkt`\n" +
+                        "• Posiadanie Rangi Twórca/Wspierający = `150 Pkt ( Co Miesiąc )` ")
+                .setFooter("```Aktywność Kanałow Czatu = 5 Codziennie\n" +
+                        "Aktywność Kanałów Głosowych = 5 Codziennie\n" +
+                        "Posiadanie Rang = Co Miesiąc```")
 
                 .setColor(Color.red)
                 .build();
@@ -86,11 +81,29 @@ public class ExchangePointsCommands extends ListenerAdapter {
                     .setPlaceholder("Ranga jaką chcesz odebrać (vip, svip, age")
                     .build();
 
-            Modal modal = Modal.create("form-modal", "Odbierz nagrodę")
-                    .addActionRow(rank)
+//            Modal modal = Modal.create("form-modal", "Odbierz nagrodę")
+//                    .addActionRow(rank)
+//                    .build();
+
+            Button vipReward = Button.primary("button_reward_vip", "VIP");
+            Button svipReward = Button.primary("button_reward_svip", "SVIP");
+            Button ageReward = Button.primary("button_reward_age", "AGE");
+
+
+            MessageEmbed rewardsEmbed = new EmbedBuilder()
+
+                    .setTitle("**Dostępne nagrody:**")
+                    .setDescription(
+                            "**1.** VIP = `100 Pkt`\n" +
+                            "**2.** SVIP = `200 Pkt`\n" +
+                            "**3.** AGE = `500 Pkt`\n")
+                    .setColor(Color.red)
                     .build();
 
-            event.replyModal(modal).queue();
+            event.replyEmbeds(rewardsEmbed)
+                    .addActionRow(vipReward, svipReward, ageReward)
+                    .setEphemeral(true)
+                    .queue();
             return;
         }
         if(event.getButton().getId().equalsIgnoreCase("button_balance")) {
@@ -100,70 +113,89 @@ public class ExchangePointsCommands extends ListenerAdapter {
             }
             //TOdo stan konta embed
             event.reply("Twój stan konta to " + playerEntity.getPoints()).setEphemeral(true).queue();
+            return;
         }
+
+
+        Reward reward = getReward(event.getButton().getId());
+
+        if(reward != null) {
+            if(!reward.canAfford(playerEntity)) {
+                event.reply("Nie masz wystarczającej ilości punktów by odebrać tą nagrodę").setEphemeral(true).queue();
+                return;
+            }
+
+            reward.collect(playerEntity);
+
+            // TODO odebrales nagrode
+
+            event.reply("Odebrałeś nagrodę " + reward.getName()).setEphemeral(true).queue();
+            return;
+        }
+
     }
-    @Override
-    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+//    @Override
+//    public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+//
+//        if(!event.getModalId().equalsIgnoreCase("form-modal")) return;
+//
+//        Long userDiscordId = event.getUser().getIdLong();
+//
+//        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
+//
+//        if(playerEntity == null) {
+//            event.reply("Musisz miec polaczone koto by odebrac nagrode").setEphemeral(true).queue();
+//            return;
+//        }
+//        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
+//
+//
+//
+//        // TODO blad gracz = null
+//        // TODO gracz offline
+//        if(player == null || !player.isConnected()) {
+//            event.reply("Tego gracza nie ma na serwerze").setEphemeral(true).queue();
+//            return;
+//        }
+//
+//        if(event.getValue("form-rank") == null) {
+//            // TODO musisz podac range
+//            event.reply("Musisz podać range jaka chcesz odebrać").setEphemeral(true).queue();
+//            return;
+//        }
+//
+//        String rank = event.getValue("form-rank").getAsString().toLowerCase();
+//
+//        Reward reward = getReward(rank);
+//
+//        if(reward == null) {
+//            // TODO zla ranga
+//            event.reply("Zła ranga").setEphemeral(true).queue();
+//            return;
+//        }
+//
+//        if(!reward.canAfford(playerEntity)) {
+//            event.reply("Nie masz wystarczającej ilości punktów by odebrać tą nagrodę").setEphemeral(true).queue();
+//            return;
+//        }
+//
+//        reward.collect(playerEntity);
+//
+//        // TODO odebrales nagrode
+//        event.reply("Odebrałeś nagrodę " + reward.getName()).setEphemeral(true).queue();
+//    }
 
-        if(!event.getModalId().equalsIgnoreCase("form-modal")) return;
-
-        Long userDiscordId = event.getUser().getIdLong();
-
-        PlayerEntity playerEntity = playerEntityManager.getPlayerEntityByDiscordId(userDiscordId);
-
-        if(playerEntity == null) {
-            event.reply("Musisz miec polaczone koto by odebrac nagrode").setEphemeral(true).queue();
-            return;
-        }
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerEntity.getMinecraftId());
-
-
-
-        // TODO blad gracz = null
-        // TODO gracz offline
-        if(player == null || !player.isConnected()) {
-            event.reply("Tego gracza nie ma na serwerze").setEphemeral(true).queue();
-            return;
-        }
-
-        if(event.getValue("form-rank") == null) {
-            // TODO musisz podac range
-            event.reply("Musisz podać range jaka chcesz odebrać").setEphemeral(true).queue();
-            return;
-        }
-
-        String rank = event.getValue("form-rank").getAsString().toLowerCase();
-
-        Reward reward = getReward(rank);
-
-        if(reward == null) {
-            // TODO zla ranga
-            event.reply("Zła ranga").setEphemeral(true).queue();
-            return;
-        }
-
-        if(!reward.canAfford(playerEntity)) {
-            event.reply("Nie masz wystarczającej ilości punktów by odebrać tą nagrodę").setEphemeral(true).queue();
-            return;
-        }
-
-        reward.collect(playerEntity);
-
-        // TODO odebrales nagrode
-        event.reply("Odebrałeś nagrodę " + reward.getName()).setEphemeral(true).queue();
-    }
-
-    public Reward getReward(String rank) {
-        rank = rank.toLowerCase();
+    public Reward getReward(String buttonId) {
+        buttonId = buttonId.toLowerCase();
         Reward reward;
-        switch (rank) {
-            case "vip":
+        switch (buttonId) {
+            case "button_reward_vip":
                 reward = rewardManager.vipReward;
                 break;
-            case "svip":
+            case "button_reward_svip":
                 reward = rewardManager.svipReward;
                 break;
-            case "age":
+            case "button_reward_age":
                 reward = rewardManager.ageReward;
                 break;
             default:

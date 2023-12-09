@@ -59,7 +59,7 @@ public class LinkAccountsDiscordCommand extends ListenerAdapter {
 
             if(playerEntity != null) {
                 //TODO masz juz powiazane konto
-                event.reply("Masz juz powiazane konto z kontem minecraft: " + playerEntity.getDiscordNick()).setEphemeral(true).queue();
+                event.reply("Masz juz powiazane konto z kontem minecraft: " + playerEntity.getMinecraftNick()).setEphemeral(true).queue();
                 return;
             }
 

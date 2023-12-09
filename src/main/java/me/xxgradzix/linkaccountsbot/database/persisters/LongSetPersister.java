@@ -1,4 +1,4 @@
-package me.xxgradzix.linkaccountsbot.database;
+package me.xxgradzix.linkaccountsbot.database.persisters;
 
 import com.j256.ormlite.field.FieldType;
 import com.j256.ormlite.field.SqlType;
