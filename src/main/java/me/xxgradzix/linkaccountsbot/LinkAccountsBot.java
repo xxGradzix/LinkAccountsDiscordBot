@@ -3,13 +3,12 @@ package me.xxgradzix.linkaccountsbot;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import me.xxgradzix.linkaccountsbot.commands.AddPointsCommand;
-import me.xxgradzix.linkaccountsbot.commands.ExchangePointsCommands;
-import me.xxgradzix.linkaccountsbot.commands.LinkAccountsDiscordCommand;
-import me.xxgradzix.linkaccountsbot.commands.LinkAccountsMinecraftCommand;
+import me.xxgradzix.linkaccountsbot.commands.*;
+import me.xxgradzix.linkaccountsbot.database.entities.PlayerDiscordRewardEntity;
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerEntity;
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerPointEntity;
 import me.xxgradzix.linkaccountsbot.database.entities.PlayerRewardsEntity;
+import me.xxgradzix.linkaccountsbot.database.managers.PlayerDiscordRewardEntityManager;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerEntityManager;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerPointEntityManager;
 import me.xxgradzix.linkaccountsbot.database.managers.PlayerRewardsEntityManager;
@@ -35,6 +34,7 @@ public final class LinkAccountsBot extends Plugin {
     private final PlayerEntityManager playerEntityManager;
     private final PlayerPointEntityManager playerPointEntityManager;
     private final PlayerRewardsEntityManager playerRewardsEntityManager;
+    private final PlayerDiscordRewardEntityManager playerDiscordRewardEntityManager;
 
     private final PointManager pointManager;
 
@@ -55,10 +55,12 @@ public final class LinkAccountsBot extends Plugin {
         TableUtils.createTableIfNotExists(connectionSource, PlayerEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, PlayerPointEntity.class);
         TableUtils.createTableIfNotExists(connectionSource, PlayerRewardsEntity.class);
+        TableUtils.createTableIfNotExists(connectionSource, PlayerDiscordRewardEntity.class);
 
         playerEntityManager = new PlayerEntityManager(connectionSource);
         playerPointEntityManager = new PlayerPointEntityManager(connectionSource);
         this.playerRewardsEntityManager = new PlayerRewardsEntityManager(connectionSource);
+        this.playerDiscordRewardEntityManager = new PlayerDiscordRewardEntityManager(connectionSource);
 
         this.pointManager = new PointManager(playerEntityManager);
         this.rewardManager = new RewardManager(playerEntityManager, pointManager, playerRewardsEntityManager);
@@ -78,7 +80,8 @@ public final class LinkAccountsBot extends Plugin {
                             new ExchangePointsCommands(playerEntityManager, rewardManager),
                             new LinkAccountsDiscordCommand(playerEntityManager),
                             new AddPointsEvent(playerEntityManager, playerPointEntityManager, pointManager),
-                            new AddPointsSynchronously(this, pointManager))
+                            new AddPointsSynchronously(this, pointManager),
+                            new DiscordReward(playerEntityManager, playerDiscordRewardEntityManager, rewardManager))
                     .build()
                     .awaitReady()
             ;
@@ -88,6 +91,7 @@ public final class LinkAccountsBot extends Plugin {
                 guild.upsertCommand("exchangesetup", "odbierz").queue();
                 guild.upsertCommand("powiazsetup", "powiaz").queue();
                 guild.upsertCommand("addpoints", "addpoints").queue();
+                guild.upsertCommand("discordreward", "discordreward").queue();
             }
 
         } catch (InterruptedException e) {
